@@ -1,6 +1,5 @@
 import express from "express";
 import session from "express-session";
-
 import cors from "cors";
 import dotenv from "dotenv";
 import MongoDBStore from "connect-mongodb-session";
@@ -10,26 +9,35 @@ import authRoutes from "./routes/authRoutes.js";
 dotenv.config();
 connectDB();
 
-const MongoDBStoreSession = MongoDBStore(session);
-
 const app = express();
-const store = new MongoDBStoreSession({
-    uri: process.env.MONGO_URI,
-    collection: "sessions",
-  });
 
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
-}));
+// --- Correct usage of connect-mongodb-session ---
+const MongoDBStoreSession = MongoDBStore(session); // this is correct
+const store = new MongoDBStoreSession({
+  uri: process.env.MONGO_URI,
+  collection: "sessions",
+});
+
+// Catch store errors
+store.on("error", (error) => {
+  console.log("Session store error:", error);
+});
+
+// --- Middleware ---
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
-// Session middleware
+// --- Session middleware ---
 app.use(
   session({
     name: "session_id",
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "mySuperSecret123", // fallback secret
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -40,7 +48,7 @@ app.use(
   })
 );
 
-// Routes
+// --- Routes ---
 app.use("/api/auth", authRoutes);
 
 // Example protected route
@@ -51,6 +59,6 @@ app.get("/api/protected", (req, res) => {
   res.json({ msg: "Access granted!" });
 });
 
-
-app.listen(5000, () => console.log("Server running on port 5000"));
-
+// --- Start server ---
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
