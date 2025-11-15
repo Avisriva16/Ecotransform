@@ -1,7 +1,8 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
-import Waste from "../models/waste.js";
+import Waste from "../models/waste.js"; // assuming wasteRoutes.js is inside routes/
+
 
 const router = express.Router();
 
