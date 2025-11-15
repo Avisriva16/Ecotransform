@@ -11,7 +11,7 @@ const wasteSchema = new mongoose.Schema(
 
     // Store multiple image paths
     images: [{ type: String }],
-
+    estimatedValue: { type: Number, default: 0 },
     createdBy: { type: String, required: true },
   },
   { timestamps: true }
