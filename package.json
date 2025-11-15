@@ -1,8 +1,8 @@
 {
   "name": "ecotransform",
   "version": "1.0.0",
-  "description": "Backend for ecotransform",
-  "main": "index.js",
+  "description": "Backend for Ecotransform",
+  "main": "server.js",
   "type": "module",
   "scripts": {
     "start": "node server.js",
