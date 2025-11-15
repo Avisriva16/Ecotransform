@@ -12,6 +12,7 @@ import certificateRoutes from "./routes/certificateRoutes.js"; // NFT certificat
 dotenv.config();
 
 const app = express();
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const PORT = process.env.PORT || 5000;
 const __dirname = path.resolve();
 
@@ -19,8 +20,9 @@ const __dirname = path.resolve();
 // Middleware
 // -----------------------------
 app.use(cors({
-  origin: "http://localhost:5173", // frontend URL
-  credentials: true,
+  origin: FRONTEND_URL,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
 }));
 app.use(express.json());
 
