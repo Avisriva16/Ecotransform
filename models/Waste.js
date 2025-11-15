@@ -1,21 +1,17 @@
+// models/Waste.js
 import mongoose from "mongoose";
 
-const wasteSchema = new mongoose.Schema(
-  {
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    category: { type: String, required: true },
-    material: { type: String, required: true },
-    quantity: { type: Number, required: true },
-    price: { type: Number, required: true },
-
-    // Store multiple image paths
-    images: [{ type: String }],
-    estimatedValue: { type: Number, default: 0 },
-    createdBy: { type: String, required: true },
-  },
-  { timestamps: true }
-);
+const wasteSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String },
+  category: { type: String },
+  material: { type: String },
+  quantity: { type: Number },
+  price: { type: Number },
+  images: [String], // array of image filenames/paths
+  createdBy: { type: String },
+}, { timestamps: true });
 
 const Waste = mongoose.model("Waste", wasteSchema);
+
 export default Waste;
