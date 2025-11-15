@@ -1,78 +1,55 @@
 import express from "express";
-import session from "express-session";
-import wasteRoutes from "./routes/wasteRoutes.js";
+import mongoose from "mongoose";
 import cors from "cors";
-import dotenv from "dotenv";
-import MongoDBStore from "connect-mongodb-session";
-import { connectDB } from "./config/db.js";
-import authRoutes from "./routes/authRoutes.js";
 import path from "path";
+import dotenv from "dotenv";
+
+import wasteRoutes from "./routes/wasteRoutes.js";
+import authRoutes from "./routes/authRoutes.js"; // optional
 
 dotenv.config();
-connectDB();
-
-const MongoDBStoreSession = MongoDBStore(session);
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+const __dirname = path.resolve();
 
 // -----------------------------
-//  CORS (must come BEFORE sessions)
+// Middleware
 // -----------------------------
 app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
+  origin: "http://localhost:5173", // frontend URL
+  credentials: true,
 }));
-
 app.use(express.json());
 
-// -----------------------------
-//  Static Folder for Image Uploads
-// -----------------------------
-const __dirname = path.resolve();
+// Serve uploaded images statically
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // -----------------------------
-//  Sessions
+// Routes
 // -----------------------------
-const store = new MongoDBStoreSession({
-  uri: process.env.MONGO_URI,
-  collection: "sessions",
-});
-
-app.use(
-  session({
-    name: "session_id",
-    secret: process.env.SESSION_SECRET || "secret123",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    },
-    store
-  })
-);
-
-// -----------------------------
-//  Routes
-// -----------------------------
-app.use("/api/auth", authRoutes);
 app.use("/api/waste", wasteRoutes);
 
-// -----------------------------
-// TEST Protected route
-// -----------------------------
-app.get("/api/protected", (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ msg: "Unauthorized" });
-  }
-  res.json({ msg: "Access granted!" });
-});
+if (authRoutes) {
+  app.use("/api/auth", authRoutes);
+}
 
 // -----------------------------
-// Start Server
+// MongoDB connection
 // -----------------------------
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ecotransform";
+
+mongoose.connect(MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("MongoDB connected"))
+.catch(err => console.error("MongoDB connection error:", err));
+
+// -----------------------------
+// Start server
+// -----------------------------
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

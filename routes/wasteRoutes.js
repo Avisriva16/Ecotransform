@@ -1,26 +1,63 @@
 import express from "express";
 import multer from "multer";
-import upload from "../middleware/upload.js";
-import { createWasteListing } from "../controllers/wasteController.js";
+import path from "path";
+import Waste from "../models/Waste.js"; // assuming wasteRoutes.js is inside routes/
+
 
 const router = express.Router();
 
-// POST /waste/create
-router.post(
-  "/create",
-  upload.array("images", 5),
+// Setup upload folder
+const __dirname = path.resolve();
+const uploadFolder = path.join(__dirname, "uploads");
 
-  // Multer error handler (must have 4 params)
-  (err, req, res, next) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ message: `Multer Error: ${err.message}` });
-    } else if (err) {
-      return res.status(500).json({ message: `Internal Error: ${err.message}` });
-    }
-    next();
+// Multer storage config
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadFolder); // save files in uploads folder
   },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname); // unique filenames
+  },
+});
 
-  createWasteListing
-);
+const upload = multer({ storage });
+
+// Create Waste listing
+router.post("/create", upload.array("images", 5), async (req, res) => {
+  try {
+    const { title, description, material, quantity, price, createdBy, category } = req.body;
+
+    // Make sure files exist
+    const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+
+    const newWaste = new Waste({
+      title,
+      description,
+      material,
+      quantity,
+      price,
+      createdBy,
+      images,
+      category,
+    });
+
+    const savedWaste = await newWaste.save();
+    res.json({ success: true, message: "Waste listed successfully", data: savedWaste });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error creating waste listing" });
+  }
+});
+
+// Get all waste
+router.get("/all", async (req, res) => {
+  try {
+    const allWaste = await Waste.find().sort({ createdAt: -1 });
+    res.json(allWaste);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error fetching waste listings" });
+  }
+});
 
 export default router;

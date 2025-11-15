@@ -60,9 +60,26 @@ export const createWasteListing = async (req, res) => {
           image: undefined, // No image path saved in this test setup
       });
 
-      const savedWaste = await newWaste.save();
-      res.status(201).json(savedWaste);
+    const savedWaste = await newWaste.save();
 
+    res.status(201).json({
+      success: true,
+      message: "Waste listed successfully",
+      data: savedWaste,
+    });
+  } catch (err) {
+    console.error("Error creating waste listing:", err);
+    res.status(500).json({ success: false, message: "Error creating waste listing" });
+  }
+};
+
+// ------------------------
+// GET ALL WASTE LISTINGS
+// ------------------------
+export const getAllWaste = async (req, res) => {
+  try {
+    const allWaste = await Waste.find().sort({ createdAt: -1 });
+    res.json(allWaste);
   } catch (err) {
       // Log the full error to the console for detailed debugging
       console.error("AI or Database Error:", err); 
