@@ -1,22 +1,22 @@
-// server/server.js
-const express = require('express');
-const cors = require('cors');
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { connectDB } from "./config/db.js";
+
+dotenv.config();
 const app = express();
-const PORT = 5000; // Choose a port different from React's default (3000)
+connectDB();
 
-// --- MIDDLEWARE ---
-// Use CORS to allow requests from your React frontend
-app.use(cors()); 
-// Allows the server to parse incoming JSON data (e.g., from POST requests)
-app.use(express.json()); 
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-// --- API ENDPOINT ---
-// A simple GET route to test the connection
-app.get('/api/message', (req, res) => {
-  res.json({ message: 'Hello from the Node.js backend!' });
+// Test route
+app.get("/", (req, res) => {
+  res.json({ message: "Backend is running!" });
 });
 
-// --- START SERVER ---
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+// Start server
+app.listen(process.env.PORT || 5000, () => {
+  console.log(`Server running on port ${process.env.PORT}`);
 });
