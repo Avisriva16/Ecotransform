@@ -1,7 +1,6 @@
-// models/Waste.js
 import mongoose from "mongoose";
 
-const wasteSchema = mongoose.Schema(
+const wasteSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -9,8 +8,11 @@ const wasteSchema = mongoose.Schema(
     material: { type: String, required: true },
     quantity: { type: Number, required: true },
     price: { type: Number, required: true },
-    image: { type: String },
-    createdBy: { type: String } // artisan/user
+
+    // Store multiple image paths
+    images: [{ type: String }],
+
+    createdBy: { type: String, required: true },
   },
   { timestamps: true }
 );

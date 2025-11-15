@@ -1,68 +1,78 @@
 import express from "express";
 import session from "express-session";
-<<<<<<< HEAD
-=======
 import wasteRoutes from "./routes/wasteRoutes.js";
->>>>>>> 9bf6f12e3291d8c9670a83cc2f5e8dc62311a458
 import cors from "cors";
 import dotenv from "dotenv";
 import MongoDBStore from "connect-mongodb-session";
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import path from "path";
 
 dotenv.config();
 connectDB();
 
+const MongoDBStoreSession = MongoDBStore(session);
+
 const app = express();
 
-// --- Correct usage of connect-mongodb-session ---
-const MongoDBStoreSession = MongoDBStore(session); // this is correct
+// -----------------------------
+//  CORS (must come BEFORE sessions)
+// -----------------------------
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+
+app.use(express.json());
+
+// -----------------------------
+//  Static Folder for Image Uploads
+// -----------------------------
+const __dirname = path.resolve();
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// -----------------------------
+//  Sessions
+// -----------------------------
 const store = new MongoDBStoreSession({
   uri: process.env.MONGO_URI,
   collection: "sessions",
 });
 
-// Catch store errors
-store.on("error", (error) => {
-  console.log("Session store error:", error);
-});
-
-// --- Middleware ---
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  })
-);
-
-app.use(express.json());
-
-// --- Session middleware ---
 app.use(
   session({
     name: "session_id",
-    secret: process.env.SESSION_SECRET || "mySuperSecret123", // fallback secret
+    secret: process.env.SESSION_SECRET || "secret123",
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     },
-    store: store,
+    store
   })
 );
 
-// --- Routes ---
+// -----------------------------
+//  Routes
+// -----------------------------
 app.use("/api/auth", authRoutes);
-app.use("/waste", wasteRoutes);
-// Example protected route
-app.get("/api/protected", (req, res) => {
-  if (!req.session.userId)
-    return res.status(401).json({ msg: "Unauthorized" });
+app.use("/api/waste", wasteRoutes);
 
+// -----------------------------
+// TEST Protected route
+// -----------------------------
+app.get("/api/protected", (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ msg: "Unauthorized" });
+  }
   res.json({ msg: "Access granted!" });
 });
 
-// --- Start server ---
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// -----------------------------
+// Start Server
+// -----------------------------
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
+});
