@@ -1,6 +1,6 @@
 import express from "express";
 import session from "express-session";
-
+import wasteRoutes from "./routes/wasteRoutes.js";
 import cors from "cors";
 import dotenv from "dotenv";
 import MongoDBStore from "connect-mongodb-session";
@@ -42,7 +42,7 @@ app.use(
 
 // Routes
 app.use("/api/auth", authRoutes);
-
+app.use("/waste", wasteRoutes);
 // Example protected route
 app.get("/api/protected", (req, res) => {
   if (!req.session.userId)
